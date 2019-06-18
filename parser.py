@@ -20,7 +20,7 @@ class Parser(object):
                         current_uuid = json.load(args)['origin']['uuid']
                         if current_uuid not in self.camera_uuids.keys():
                             chunk_path = root.split('/')
-                            self.camera_uuids[current_uuid] = '/'.join(chunk_path[0:3])
+                            self.camera_uuids[current_uuid] = '/'.join(chunk_path[0:8])
 
     def search_by_time(self, start: str, end: str, uuid: str) -> dict:
         camera_path = self.get_path_by_uuid(uuid)
@@ -36,7 +36,7 @@ class Parser(object):
                         json_dict = json.load(args)
                         if json_dict['origin']['uuid'] == uuid:
                             args_dict = dict()
-                            args_dict['path'] = filename[:-9]
+                            args_dict['path'] = filename[:-9].replace(self.root_path, "")
                             #camera uuid
                             args_dict['uuid'] = json_dict['origin']['uuid']
                             args_dict['time'] = json_dict['time']
@@ -79,54 +79,53 @@ class Parser(object):
         return dict_date
 
     def create_excel(self) -> int:
-        os.curdir(self.root_path)
-        if not os.path.exists("xlsx"):
-            os.makedirs("xlsx")
+        xlsx_path = os.path.join(self.root_path, "xlsx")
+        if not os.path.exists(xlsx_path):
+            os.makedirs(xlsx_path)
         now = datetime.datetime.now()
-        xsls_name = now.date() + '.xlsx'    
-        workbook = xlsxwriter.Workbook(root_path + '/xlsx/' + xsls_name)
+        xlsx_name = str(now.date()) + '.xlsx'    
+        workbook = xlsxwriter.Workbook(os.path.join(xlsx_path, xlsx_name))
         worksheet = workbook.add_worksheet()
         excel_format = workbook.add_format(
             {'align': 'center', 'valign': 'vcenter', 'text_wrap': True})
 
-        worksheet.set_column('A:E', 31, excel_format)
+        worksheet.set_column('A:F', 31, excel_format)
         worksheet.write('A1', 'Фото машины')
         worksheet.write('B1', 'Фото ГРЗ')
         worksheet.write('C1', 'Камера')
         worksheet.write('D1', 'Дата и время события')
         worksheet.write('E1', 'Распознанный номер')
+        worksheet.write('F1', 'Марка')
 
         row = 1
         for el in self.events:
             worksheet.set_row(row, 170, excel_format)
             worksheet.insert_image(
-                row, 0, os.path.join(el['path'], el['images']['thumb']['name']),
+                row, 0, os.path.join(el['path'], el['images']['thumb']),
                 {'object_position': 3})
             worksheet.insert_image(
                 row, 1, os.path.join(
-                    el['path'], el['images']['license-plates'][0]['name']),
+                    el['path'], el['images']['plate']),
                 {'object_position': 3, 'x_offset': 20, 'y_offset': 20,
                     'x_scale': 1.5, 'y_scale': 1.5})
             worksheet.write(row, 2, el['location'])
             worksheet.write(row, 3, el['time'])
-            worksheet.write(row, 4, el['plate_text'])
+            worksheet.write(row, 4, el['vehicle']['plate-text'])
+            worksheet.write(row, 5, el['vehicle']['make'] + '\n' + el['vehicle']['model'])
             row += 1
 
         workbook.close()
-        print("Done!")
+        return xlsx_name
 
     def get_path_by_uuid(self, uuid) -> str:
         return self.camera_uuids[uuid]
-# for test
 
 
 
-def counter_jsonfile(path: str) -> int:
-    count = 0
-    for _, _, files in os.walk(path):
-        for file in files:
-            if '.json' in file:
-                count += 1
 
-    return count
+
+
+
+
+
 
