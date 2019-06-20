@@ -3,29 +3,35 @@ import os
 import xlsxwriter
 import glob
 import datetime
-import pathlib
 
 
 class Parser(object):
+    
+    
     def __init__(self, root_path: str):
         self.root_path = root_path
-        self.events = []
         self.camera_uuids = {}
+        
 
-    def init_camera_folders(self)-> dict:
+    def init_camera_folders(self):
         for root, _, files in os.walk(self.root_path):
             for file in files:
                 if '.json' in file:
-                    with open(os.path.join(root,file)) as args:
+                    with open(os.path.join(root, file)) as args:
                         current_uuid = json.load(args)['origin']['uuid']
                         if current_uuid not in self.camera_uuids.keys():
                             chunk_path = root.split('/')
-                            self.camera_uuids[current_uuid] = '/'.join(chunk_path[0:8])
+                            # save path without year/mounth/day/hour/minute/uuid [6]
+                            self.camera_uuids[current_uuid] = '/'.join(
+                                chunk_path[0:-6])
 
     def search_by_time(self, start: str, end: str, uuid: str) -> dict:
         camera_path = self.get_path_by_uuid(uuid)
         start_time = self.format_date(start)
         end_time = self.format_date(end)
+        if camera_path is None:
+            return {"camera": "Please check camera UUID"}
+        events = []    
         path = camera_path + os.sep + start_time['day_path']
         for directory in sorted(os.listdir(path)):
             if start_time['hour'] <= int(directory) and int(directory) <= end_time['hour']:
@@ -36,7 +42,7 @@ class Parser(object):
                         json_dict = json.load(args)
                         if json_dict['origin']['uuid'] == uuid:
                             args_dict = dict()
-                            args_dict['path'] = filename[:-9].replace(self.root_path, "")
+                            args_dict['path'] = filename[:-9]
                             #camera uuid
                             args_dict['uuid'] = json_dict['origin']['uuid']
                             args_dict['time'] = json_dict['time']
@@ -64,8 +70,8 @@ class Parser(object):
                                     "weight": ""
                                 }
                             args_dict['vehicle']['plate-text'] = vehicle['license-plates'][0]['text']['ucode']
-                            self.events.append(args_dict)
-        print("count json events: ", len(self.events))
+                            events.append(args_dict)
+        return events
 
     def format_date(self, date: str) -> dict:
         datestr = date.split('.')[0]
@@ -73,17 +79,19 @@ class Parser(object):
         day_path = "{:4d}/{:02d}/{:02d}".format(tmp.year, tmp.month, tmp.day)
         dict_date = {
             "day_path": day_path,
+            "year":tmp.year,
+            "month":tmp.month,
+            "day": tmp.day,
             "hour": tmp.hour,
-            "minute": tmp.minute
+            "minute": tmp.minute,
         }
         return dict_date
 
-    def create_excel(self) -> int:
+    def create_excel(self, filename, data):
         xlsx_path = os.path.join(self.root_path, "xlsx")
         if not os.path.exists(xlsx_path):
             os.makedirs(xlsx_path)
-        now = datetime.datetime.now()
-        xlsx_name = str(now.date()) + '.xlsx'    
+        xlsx_name = filename + '.xlsx'
         workbook = xlsxwriter.Workbook(os.path.join(xlsx_path, xlsx_name))
         worksheet = workbook.add_worksheet()
         excel_format = workbook.add_format(
@@ -98,7 +106,7 @@ class Parser(object):
         worksheet.write('F1', 'Марка')
 
         row = 1
-        for el in self.events:
+        for el in data:
             worksheet.set_row(row, 170, excel_format)
             worksheet.insert_image(
                 row, 0, os.path.join(el['path'], el['images']['thumb']),
@@ -113,19 +121,25 @@ class Parser(object):
             worksheet.write(row, 4, el['vehicle']['plate-text'])
             worksheet.write(row, 5, el['vehicle']['make'] + '\n' + el['vehicle']['model'])
             row += 1
-
         workbook.close()
-        return xlsx_name
 
     def get_path_by_uuid(self, uuid) -> str:
-        return self.camera_uuids[uuid]
+        if uuid in self.camera_uuids:
+            return self.camera_uuids[uuid]
+        else:
+            self.init_camera_folders()
+            if uuid in self.camera_uuids:
+                return self.camera_uuids[uuid]
+            else:
+                return None
 
-
-
-
-
-
-
-
+    def gen_name_by_time(self, start, end) -> str:
+        start_time = self.format_date(start)
+        end_time = self.format_date(end)
+        name = "{:4d}-{:02d}-{:02d}T{:02d}{:02d}-{:02d}{02d}".format(
+                    start_time['year'], start_time['month'], start_time['day'],
+                    start_time['hour'], start_time['minute'], 
+                    end_time['hour'], end_time['minute'])
+        return name
 
 

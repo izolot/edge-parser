@@ -1,8 +1,7 @@
+import config
 from flask import Flask
-import config, parser
 
 app = Flask(__name__)
-app.config.from_object(config.DevelopmentConfig)
+app.config.from_object('config.DevelopmentConfig')
 
-
-from app import api_routes
+from app import api_routes 
