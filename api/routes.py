@@ -1,16 +1,16 @@
 import config
 import time
 from threading import Thread
-from app import app
+from api import app
 from flask import jsonify
 from flask import request
 from flask import send_from_directory
-from . import model
+import parser
 
 
 # init parser
 parse_path = config.Config.ARCHIVE_PATH
-pars = model.Parser(parse_path)
+pars = parser.Parser(parse_path)
 print("Create instance")
 pars.init_camera_folders()
 events = []

@@ -46,7 +46,7 @@ class Parser(object):
                             #camera uuid
                             args_dict['uuid'] = json_dict['origin']['uuid']
                             time = datetime.datetime.strptime(json_dict['time'], "%Y-%m-%dT%H:%M:%S.%f%z")
-                            text_time = time.strftime("%Y.%m.%d %H.%M.%S")
+                            text_time = time.strftime("%Y.%m.%d %H:%M:%S")
                             args_dict['time'] = text_time
                             args_dict['location'] = json_dict['origin']['location']['place']
                             images = json_dict['measurements'][0]['waypoints']['best']['images']
