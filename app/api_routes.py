@@ -1,14 +1,17 @@
 import config
+import time
+from threading import Thread
 from app import app
 from flask import jsonify
 from flask import request
 from flask import send_from_directory
-from . import parser
+from . import model
 
 
 # init parser
-parse_path = config.Config.PARSE_PATH
-pars = parser.Parser(parse_path)
+parse_path = config.Config.ARCHIVE_PATH
+pars = model.Parser(parse_path)
+print("Create instance")
 pars.init_camera_folders()
 events = []
 
@@ -18,15 +21,17 @@ def get_events_by_time():
     start = request.args.get('start')
     end = request.args.get('end')
     uuid = request.args.get('uuid')
-    filename = pars.gen_name_by_time(start,end)
     events = pars.search_by_time(start, end, uuid)
-    pars.create_excel(filename, events)
+    t = Thread(target = pars.create_excel, args = (uuid, events))
+    t.start()
     return jsonify({'result': events})
 
 
 @app.route('/api/excel', methods=['GET'])
-def download_file(filename):
+def download_file():
+    uuid = request.args.get('uuid')
+    filename = uuid + '.xlsx'
     return send_from_directory(
-                                parse_path + '/xlsx', filename, 
+                                parse_path + '/xlsx', filename,
                                 mimetype="application/vnd.openxmlformats-" + "officedocument.spreadsheetml.sheet",
                                 as_attachment=True)

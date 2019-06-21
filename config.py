@@ -1,10 +1,12 @@
 class Config(object):
     DEBUG = False
     TESTING = False
-    PARSE_PATH = "/home/ivan/Projects/larga/mnt"
-    SERVER = ""
-    PORT = ""
-
+    ARCHIVE_PATH = "/Users/ivangrimm/Documents/mnt"
+    HOST = "127.0.0.1"
+    PORT = "5551"
 
 class DevelopmentConfig(Config):
     DEBUG = True
+
+class TestingConfig(Config):
+    TESTING = True 

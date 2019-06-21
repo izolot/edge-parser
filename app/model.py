@@ -5,8 +5,8 @@ import glob
 import datetime
 
 
-class Parser(object):
-    
+
+class Parser(object): 
     
     def __init__(self, root_path: str):
         self.root_path = root_path
@@ -45,7 +45,9 @@ class Parser(object):
                             args_dict['path'] = filename[:-9]
                             #camera uuid
                             args_dict['uuid'] = json_dict['origin']['uuid']
-                            args_dict['time'] = json_dict['time']
+                            time = datetime.datetime.strptime(json_dict['time'], "%Y-%m-%dT%H:%M:%S.%f%z")
+                            text_time = time.strftime("%Y.%m.%d %H.%M.%S")
+                            args_dict['time'] = text_time
                             args_dict['location'] = json_dict['origin']['location']['place']
                             images = json_dict['measurements'][0]['waypoints']['best']['images']
                             args_dict['images'] = {
@@ -71,11 +73,12 @@ class Parser(object):
                                 }
                             args_dict['vehicle']['plate-text'] = vehicle['license-plates'][0]['text']['ucode']
                             events.append(args_dict)
+        print("Json elements: - ", len(events))
         return events
 
+    #2019-06-21T01:00:00
     def format_date(self, date: str) -> dict:
-        datestr = date.split('.')[0]
-        tmp = datetime.datetime.strptime(datestr, "%Y-%m-%dT%H:%M:%S")
+        tmp = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
         day_path = "{:4d}/{:02d}/{:02d}".format(tmp.year, tmp.month, tmp.day)
         dict_date = {
             "day_path": day_path,
@@ -133,13 +136,5 @@ class Parser(object):
             else:
                 return None
 
-    def gen_name_by_time(self, start, end) -> str:
-        start_time = self.format_date(start)
-        end_time = self.format_date(end)
-        name = "{:4d}-{:02d}-{:02d}T{:02d}{:02d}-{:02d}{02d}".format(
-                    start_time['year'], start_time['month'], start_time['day'],
-                    start_time['hour'], start_time['minute'], 
-                    end_time['hour'], end_time['minute'])
-        return name
 
 

@@ -1,11 +1,7 @@
 import unittest
 import constants
-import parser
-import hashlib
 import os
-import difflib
-import pandas as pd
-from app import parser
+from app import model
 
 
 
@@ -13,7 +9,7 @@ class TestParser(unittest.TestCase):
 
     def setUp(self):
        
-        self.test_parser = parser.Parser("test/")
+        self.test_parser = model.Parser("test/")
     
     
     def test_init_camera_folders(self):
