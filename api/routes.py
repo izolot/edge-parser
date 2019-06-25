@@ -1,11 +1,13 @@
 import config
 import time
+import os
 from edge_parser import Parser
 from threading import Thread
 from api import app
 from flask import jsonify
 from flask import request
 from flask import send_from_directory
+from flask import render_template
 
 
 
@@ -32,7 +34,17 @@ def get_events_by_time():
 def download_file():
     uuid = request.args.get('uuid')
     filename = uuid + '.xlsx'
+    filepath = parse_path + '/xlsx'
+    if not os.path.exists(os.path.join(filepath, filename)):
+        return jsonify({'message': 'File is not found'})
+
     return send_from_directory(
-                                parse_path + '/xlsx', filename,
-                                mimetype="application/vnd.openxmlformats-" + "officedocument.spreadsheetml.sheet",
-                                as_attachment=True)
+                                    filepath, filename,
+                                    mimetype="application/vnd.openxmlformats-" + "officedocument.spreadsheetml.sheet",
+                                    as_attachment=True)
+
+
+
+@app.route('/info', methods = ['GET'])
+def get_info():
+    return render_template("info.html")

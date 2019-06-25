@@ -26,11 +26,13 @@ class Parser(object):
                                 chunk_path[0:-6])
 
     def search_by_time(self, start: str, end: str, uuid: str) -> dict:
+        if len(uuid) < 36:
+            return {"uuid": "Please check Camera UUID"}
         camera_path = self.get_path_by_uuid(uuid)
         start_time = self.format_date(start)
         end_time = self.format_date(end)
         if camera_path is None:
-            return {"camera": "Please check camera UUID"}
+            return {"message": "Please check ARCHIVE_PATH"}
         events = []    
         path = camera_path + os.sep + start_time['day_path']
         for directory in sorted(os.listdir(path)):
@@ -98,15 +100,18 @@ class Parser(object):
         workbook = xlsxwriter.Workbook(os.path.join(xlsx_path, xlsx_name))
         worksheet = workbook.add_worksheet()
         excel_format = workbook.add_format(
-            {'align': 'center', 'valign': 'vcenter', 'text_wrap': True})
-
-        worksheet.set_column('A:F', 31, excel_format)
-        worksheet.write('A1', 'Фото машины')
-        worksheet.write('B1', 'Фото ГРЗ')
-        worksheet.write('C1', 'Камера')
-        worksheet.write('D1', 'Дата и время события')
-        worksheet.write('E1', 'Распознанный номер')
-        worksheet.write('F1', 'Марка')
+            {'align': 'center', 'valign': 'vcenter', 'text_wrap': True })
+        title_format = workbook.add_format({'bg_color': '396cb4', 'align': 'center', 'valign': 'vcenter',
+                                            'border_color': 'black', 'top':1,
+                                             'bottom':1, 'left':1, 'right':1 })
+        worksheet.set_column('A:F', 31)
+        worksheet.set_row(0, 40, excel_format)
+        worksheet.write('A1', 'Фото машины', title_format)
+        worksheet.write('B1', 'Фото ГРЗ', title_format)
+        worksheet.write('C1', 'ID Камеры', title_format)
+        worksheet.write('D1', 'Дата и время события \n гггг.мм.дд чч:мм:сс', title_format)
+        worksheet.write('E1', 'Распознанный ГРЗ', title_format)
+        worksheet.write('F1', 'Тип авто', title_format)
 
         row = 1
         for el in data:
