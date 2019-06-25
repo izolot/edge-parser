@@ -1,9 +1,7 @@
 class Config(object):
     DEBUG = False
     TESTING = False
-    ARCHIVE_PATH = "/Users/ivangrimm/Documents/mnt"
-    HOST = "127.0.0.1"
-    PORT = "5551"
+    ARCHIVE_PATH = ""
 
 class DevelopmentConfig(Config):
     DEBUG = True

@@ -1,7 +1,8 @@
 import unittest
 import constants
 import os
-from parser import Parser
+import pandas as pd
+from edge_parser import Parser
 
 
 
@@ -45,7 +46,9 @@ class TestParser(unittest.TestCase):
         self.test_parser.init_camera_folders()
         test_data = self.test_parser.search_by_time("2019-06-07T03:00:00","2019-06-07T18:00:00","bd6a0672-b72d-42d3-a54e-e1f9e7467a93")
         self.test_parser.create_excel("test_excel",test_data)
-        self.assertTrue(os.stat("test/xlsx/test_excel.xlsx").st_size==os.stat("test/xlsx/example.xlsx").st_size)
+        test_excel = pd.read_excel("test/xlsx/test_excel.xlsx", sheet_name='Sheet1', index_col=0)
+        example_excel = pd.read_excel("test/xlsx/example.xlsx", sheet_name='Sheet1', index_col=0)
+        self.assertTrue(test_excel.equals(example_excel))
         
 
 if __name__ == "__main__":
