@@ -24,15 +24,16 @@ class Parser(object):
                             # save path without year/mounth/day/hour/minute/uuid [6]
                             self.camera_uuids[current_uuid] = '/'.join(
                                 chunk_path[0:-6])
+        print(self.camera_uuids)
 
     def search_by_time(self, start: str, end: str, uuid: str) -> dict:
         if len(uuid) < 36:
-            return {"uuid": "Please check Camera UUID"}
+            return "Error  -> Bad UUID"
         camera_path = self.get_path_by_uuid(uuid)
         start_time = self.format_date(start)
         end_time = self.format_date(end)
         if camera_path is None:
-            return {"message": "Please check ARCHIVE_PATH"}
+            return "Error  -> Archive by UUID is not found"
         events = []    
         path = camera_path + os.sep + start_time['day_path']
         for directory in sorted(os.listdir(path)):
