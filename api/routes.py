@@ -8,6 +8,7 @@ from flask import jsonify
 from flask import request
 from flask import send_from_directory
 from flask import render_template
+from flask import after_this_request
 
 
 
@@ -25,11 +26,14 @@ def get_events_by_time():
     end = request.args.get('end')
     uuid = request.args.get('uuid')
     events = pars.search_by_time(start, end, uuid)
-    t = Thread(target = pars.create_excel, args = (uuid, events))
+    id_file = pars.generate_file_id(uuid)
+    t = Thread(target = pars.create_excel, args = (id_file, events))
     t.start()
-    return jsonify({'result': events})
+    return jsonify({'id_file': id_file ,'result': events})
 
-
+"""
+download file by uuid(id_file) 
+"""
 @app.route('/api/excel', methods=['GET'])
 def download_file():
     uuid = request.args.get('uuid')
@@ -37,7 +41,10 @@ def download_file():
     filepath = parse_path + '/xlsx'
     if not os.path.exists(os.path.join(filepath, filename)):
         return jsonify({'message': 'File is not found'})
-
+    @after_this_request
+    def remove_file(response):
+        os.remove(os.path.join(filepath, filename))
+        return response
     return send_from_directory(
                                     filepath, filename,
                                     mimetype="application/vnd.openxmlformats-" + "officedocument.spreadsheetml.sheet",

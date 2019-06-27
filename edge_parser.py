@@ -3,7 +3,7 @@ import os
 import xlsxwriter
 import glob
 import datetime
-
+import time
 
 
 class Parser(object): 
@@ -19,21 +19,21 @@ class Parser(object):
                 if '.json' in file:
                     with open(os.path.join(root, file)) as args:
                         current_uuid = json.load(args)['origin']['uuid']
-                        if current_uuid not in self.camera_uuids.keys():
+                        if current_uuid not in self.camera_uuids:
                             chunk_path = root.split('/')
                             # save path without year/mounth/day/hour/minute/uuid [6]
                             self.camera_uuids[current_uuid] = '/'.join(
                                 chunk_path[0:-6])
-        print(self.camera_uuids)
+        print("Init cameras - ",self.camera_uuids)
 
     def search_by_time(self, start: str, end: str, uuid: str) -> dict:
         if len(uuid) < 36:
             return "Error  -> Bad UUID"
         camera_path = self.get_path_by_uuid(uuid)
-        start_time = self.format_date(start)
-        end_time = self.format_date(end)
         if camera_path is None:
             return "Error  -> Archive by UUID is not found"
+        start_time = self.format_date(start)
+        end_time = self.format_date(end)
         events = []    
         path = camera_path + os.sep + start_time['day_path']
         for directory in sorted(os.listdir(path)):
@@ -92,6 +92,13 @@ class Parser(object):
             "minute": tmp.minute,
         }
         return dict_date
+
+    
+    def generate_file_id(self, uuid):
+        now = hex(int(time.time()))
+        uuid = uuid.replace('-','')
+        return str(now) + uuid
+
 
     def create_excel(self, filename, data):
         xlsx_path = os.path.join(self.root_path, "xlsx")
