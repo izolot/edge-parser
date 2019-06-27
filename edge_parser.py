@@ -95,7 +95,8 @@ class Parser(object):
 
     
     def generate_file_id(self, uuid):
-        now = hex(int(time.time()))
+        # gen id and remove 0x
+        now = hex(int(time.time()))[2:]
         uuid = uuid.replace('-','')
         return str(now) + uuid
 
@@ -150,4 +151,6 @@ class Parser(object):
                 return None
 
 
+if __name__ == "__main__":
 
+    print(Parser("").generate_file_id('dec7a59d-123a-4797-9a90-185137ddf293'))    
