@@ -48,6 +48,7 @@ def download_file():
     return send_from_directory(
                                     filepath, filename,
                                     mimetype="application/vnd.openxmlformats-" + "officedocument.spreadsheetml.sheet",
+                                    attachment_filename="отчет.xlsx",
                                     as_attachment=True)
 
 
