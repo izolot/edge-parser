@@ -25,10 +25,13 @@ def get_events_by_time():
     start = request.args.get('start')
     end = request.args.get('end')
     uuid = request.args.get('uuid')
+    # выбор сделан в пользу однопоточного решения
     events = pars.search_by_time(start, end, uuid)
     id_file = pars.generate_file_id(uuid)
-    t = Thread(target = pars.create_excel, args = (id_file, events))
-    t.start()
+    pars.create_excel(id_file, events)
+    # при реализации в несколько тредов файл не всегда успевает записаться вовремя
+    # t = Thread(target = pars.create_excel, args = (id_file, events))
+    # t.start()
     return jsonify({'id_file': id_file ,'result': events})
 
 """
@@ -48,7 +51,7 @@ def download_file():
     return send_from_directory(
                                     filepath, filename,
                                     mimetype="application/vnd.openxmlformats-" + "officedocument.spreadsheetml.sheet",
-                                    attachment_filename="отчет.xlsx",
+                                    attachment_filename="Oтчет_"+ time.strftime("%Y_%m_%d") + ".xlsx",
                                     as_attachment=True)
 
 

@@ -34,7 +34,8 @@ class Parser(object):
             return "Error  -> Archive by UUID is not found"
         start_time = self.format_date(start)
         end_time = self.format_date(end)
-        events = []    
+        events = []
+        #archive for only one day
         path = camera_path + os.sep + start_time['day_path']
         for directory in sorted(os.listdir(path)):
             if start_time['hour'] <= int(directory) and int(directory) <= end_time['hour']:
