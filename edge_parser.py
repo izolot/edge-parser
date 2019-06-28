@@ -6,7 +6,7 @@ import datetime
 import time
 
 
-class Parser(object): 
+class Parser(object):
     
     def __init__(self, root_path: str):
         self.root_path = root_path
@@ -18,12 +18,14 @@ class Parser(object):
             for file in files:
                 if '.json' in file:
                     with open(os.path.join(root, file)) as args:
-                        current_uuid = json.load(args)['origin']['uuid']
+                        json_args = json.load(args)
+                        current_uuid = json_args['origin']['uuid']
                         if current_uuid not in self.camera_uuids:
                             chunk_path = root.split('/')
+                            name_camera = json_args['origin']['location']['place']
                             # save path without year/mounth/day/hour/minute/uuid [6]
-                            self.camera_uuids[current_uuid] = '/'.join(
-                                chunk_path[0:-6])
+                            self.camera_uuids[current_uuid] = { 'archive_path': '/'.join(
+                                chunk_path[0:-6]), 'name' : name_camera }
         print("Init cameras - ",self.camera_uuids)
 
     def search_by_time(self, start: str, end: str, uuid: str) -> dict:
@@ -141,17 +143,15 @@ class Parser(object):
             row += 1
         workbook.close()
 
+
     def get_path_by_uuid(self, uuid) -> str:
         if uuid in self.camera_uuids:
-            return self.camera_uuids[uuid]
+            return self.camera_uuids[uuid]['archive_path']
         else:
             self.init_camera_folders()
             if uuid in self.camera_uuids:
-                return self.camera_uuids[uuid]
+                return self.camera_uuids[uuid]['archive_path']
             else:
                 return None
 
-
-if __name__ == "__main__":
-
-    print(Parser("").generate_file_id('dec7a59d-123a-4797-9a90-185137ddf293'))    
+    

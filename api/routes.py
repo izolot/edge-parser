@@ -63,7 +63,11 @@ def download_file():
                                     as_attachment=True)
 
 
-
-@app.route('/info', methods = ['GET'])
+@app.route('/api/info', methods = ['GET'])
 def get_info():
     return render_template("info.html")
+
+# для получения списка камер которые хранятся в архиве
+@app.route('/api/cameras', methods = ['GET'])
+def get_list_cameras():
+    return jsonify({'cameras': pars.camera_uuids})
