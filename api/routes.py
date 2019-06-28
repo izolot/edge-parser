@@ -19,12 +19,20 @@ print("Create instance")
 pars.init_camera_folders()
 events = []
 
+def is_one_day(start,end):
+    first_date = start.split('T')[0]
+    second_date = end.split('T')[0]
+    return first_date == second_date
+
 
 @app.route('/api/events', methods=['GET'])
 def get_events_by_time():
     start = request.args.get('start')
     end = request.args.get('end')
     uuid = request.args.get('uuid')
+    if not is_one_day(start, end):
+        return "Error ->  Please choose only one day"
+
     # выбор сделан в пользу однопоточного решения
     events = pars.search_by_time(start, end, uuid)
     id_file = pars.generate_file_id(uuid)
