@@ -10,6 +10,10 @@ from api import app
 from config import Config
 from edge_parser import Parser
 
+print("Initialization Parser....")
+pars = Parser(Config.ARCHIVE_PATH)
+pars.init_camera_folders()
+print("Parser initialized")
 
 def is_one_day(start,end):
     first_date = start.split('T')[0]
@@ -25,7 +29,6 @@ def get_events_by_time():
     if not is_one_day(start, end):
         return "Error ->  Please choose only one day"
     # выбор сделан в пользу однопоточного решения
-    pars = Parser()
     events = pars.search_by_time(start, end, uuid)
     id_file = pars.generate_file_id(uuid)
     if len(events) > Config.EXCEL_LIMIT_ROW:
@@ -44,14 +47,14 @@ uuid = filename + extension
 @app.route('/api/excel', methods=['GET'])
 def download_file():
     uuid = request.args.get('uuid')
-    if not os.path.exists(os.path.join(Parser.root_path, uuid)):
+    if not os.path.exists(os.path.join(pars.root_path, uuid)):
         return jsonify({'message': 'File is not found'})
     @after_this_request
     def remove_file(respone):
-        os.remove(os.path.join(Parser.root_path, uuid))
+        os.remove(os.path.join(pars.root_path, uuid))
         return respone
     return send_from_directory(
-                                    Parser.root_path, uuid,
+                                    pars.root_path, uuid,
                                     attachment_filename="Oтчет_"+ time.strftime("%Y_%m_%d") + "." + uuid.split('.')[1],
                                     as_attachment=True)
 
@@ -63,4 +66,4 @@ def get_info():
 # для получения списка камер которые хранятся в архиве
 @app.route('/api/cameras', methods = ['GET'])
 def get_list_cameras():
-    return jsonify({'cameras': Parser.camera_uuids})
+    return jsonify({'cameras': pars.camera_uuids})
