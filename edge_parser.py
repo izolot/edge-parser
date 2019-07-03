@@ -52,7 +52,7 @@ class Parser(object):
                             args_dict['path'] = filename[:-9]
                             #camera uuid
                             args_dict['uuid'] = json_dict['origin']['uuid']
-                            time = datetime.datetime.strptime(json_dict['time'], "%Y-%m-%dT%H:%M:%S.%f%z")
+                            time = datetime.datetime.strptime(json_dict['time'].split('.')[0], "%Y-%m-%dT%H:%M:%S")
                             text_time = time.strftime("%Y.%m.%d %H:%M:%S")
                             args_dict['time'] = text_time
                             args_dict['location'] = json_dict['origin']['location']['place']
