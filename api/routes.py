@@ -44,14 +44,14 @@ uuid = filename + extension
 @app.route('/api/excel', methods=['GET'])
 def download_file():
     uuid = request.args.get('uuid')
-    if not os.path.exists(os.path.join(parse_path, uuid)):
+    if not os.path.exists(os.path.join(Parser.root_path, uuid)):
         return jsonify({'message': 'File is not found'})
     @after_this_request
     def remove_file(respone):
-        os.remove(os.path.join(parse_path, uuid))
+        os.remove(os.path.join(Parser.root_path, uuid))
         return respone
     return send_from_directory(
-                                    parse_path, uuid,
+                                    Parser.root_path, uuid,
                                     attachment_filename="Oтчет_"+ time.strftime("%Y_%m_%d") + "." + uuid.split('.')[1],
                                     as_attachment=True)
 
@@ -63,4 +63,4 @@ def get_info():
 # для получения списка камер которые хранятся в архиве
 @app.route('/api/cameras', methods = ['GET'])
 def get_list_cameras():
-    return jsonify({'cameras': pars.camera_uuids})
+    return jsonify({'cameras': Parser.camera_uuids})
