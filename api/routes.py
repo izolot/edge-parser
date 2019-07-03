@@ -10,12 +10,6 @@ from api import app
 from config import Config
 from edge_parser import Parser
 
-# init parser
-parse_path = Config.ARCHIVE_PATH
-pars = Parser(parse_path)
-print("Create instance")
-pars.init_camera_folders()
-events = []
 
 def is_one_day(start,end):
     first_date = start.split('T')[0]
@@ -31,6 +25,7 @@ def get_events_by_time():
     if not is_one_day(start, end):
         return "Error ->  Please choose only one day"
     # выбор сделан в пользу однопоточного решения
+    pars = Parser()
     events = pars.search_by_time(start, end, uuid)
     id_file = pars.generate_file_id(uuid)
     if len(events) > Config.EXCEL_LIMIT_ROW:

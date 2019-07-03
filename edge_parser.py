@@ -10,25 +10,28 @@ import xlsxwriter
 
 class Parser(object):
     
-    def __init__(self, root_path: str):
-        self.root_path = root_path
-        self.camera_uuids = {}
-        
+    root_path = ""
+    camera_uuids = {}
 
-    def init_camera_folders(self):
-        for root, _, files in os.walk(self.root_path):
+    @classmethod
+    def set_root_path(cls, path):
+        cls.root_path = path
+
+    @classmethod
+    def init_camera_folders(cls):
+        for root, _, files in os.walk(cls.root_path):
             for file in files:
                 if '.json' in file:
                     with open(os.path.join(root, file)) as args:
                         json_args = json.load(args)
                         current_uuid = json_args['origin']['uuid']
-                        if current_uuid not in self.camera_uuids:
+                        if current_uuid not in cls.camera_uuids:
                             chunk_path = root.split('/')
                             name_camera = json_args['origin']['location']['place']
                             # save path without year/mounth/day/hour/minute/uuid [6]
-                            self.camera_uuids[current_uuid] = { 'archive_path': '/'.join(
+                            cls.camera_uuids[current_uuid] = { 'archive_path': '/'.join(
                                 chunk_path[0:-6]), 'name' : name_camera }
-        print("Init cameras - ",self.camera_uuids)
+        print("Init cameras - ",cls.camera_uuids)
 
     def search_by_time(self, start: str, end: str, uuid: str) -> dict:
         if len(uuid) < 36:
