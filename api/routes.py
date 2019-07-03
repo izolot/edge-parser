@@ -1,19 +1,17 @@
-import config
-import time
+
 import os
-from edge_parser import Parser
+import time
 from threading import Thread
+
+from flask import (after_this_request, jsonify, render_template, request,
+                   send_from_directory)
+
 from api import app
-from flask import jsonify
-from flask import request
-from flask import send_from_directory
-from flask import render_template
-from flask import after_this_request
-
-
+from config import Config
+from edge_parser import Parser
 
 # init parser
-parse_path = config.Config.ARCHIVE_PATH
+parse_path = Config.ARCHIVE_PATH
 pars = Parser(parse_path)
 print("Create instance")
 pars.init_camera_folders()
@@ -32,34 +30,34 @@ def get_events_by_time():
     uuid = request.args.get('uuid')
     if not is_one_day(start, end):
         return "Error ->  Please choose only one day"
-
     # выбор сделан в пользу однопоточного решения
     events = pars.search_by_time(start, end, uuid)
     id_file = pars.generate_file_id(uuid)
-    pars.create_excel(id_file, events)
-    # при реализации в несколько тредов файл не всегда успевает записаться вовремя
-    # t = Thread(target = pars.create_excel, args = (id_file, events))
-    # t.start()
-    return jsonify({'id_file': id_file ,'result': events})
+    if len(events) > Config.EXCEL_LIMIT_ROW:
+        foldername = pars.create_folder_excels(
+            id_file, events, Config.EXCEL_LIMIT_ROW
+        )
+        return jsonify({'id_file': foldername ,'result': events})
+    else:
+        filename = pars.create_excel(id_file, events)
+        return jsonify({'id_file': filename ,'result': events})
 
 """
-download file by uuid(id_file) 
+download file by uuid(id_file)
+uuid = filename + extension 
 """
 @app.route('/api/excel', methods=['GET'])
 def download_file():
     uuid = request.args.get('uuid')
-    filename = uuid + '.xlsx'
-    filepath = parse_path + '/xlsx'
-    if not os.path.exists(os.path.join(filepath, filename)):
+    if not os.path.exists(os.path.join(parse_path, uuid)):
         return jsonify({'message': 'File is not found'})
     @after_this_request
-    def remove_file(response):
-        os.remove(os.path.join(filepath, filename))
-        return response
+    def remove_file(respone):
+        os.remove(os.path.join(parse_path, uuid))
+        return respone
     return send_from_directory(
-                                    filepath, filename,
-                                    mimetype="application/vnd.openxmlformats-" + "officedocument.spreadsheetml.sheet",
-                                    attachment_filename="Oтчет_"+ time.strftime("%Y_%m_%d") + ".xlsx",
+                                    parse_path, uuid,
+                                    attachment_filename="Oтчет_"+ time.strftime("%Y_%m_%d") + "." + uuid.split('.')[1],
                                     as_attachment=True)
 
 

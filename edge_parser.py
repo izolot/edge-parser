@@ -1,9 +1,11 @@
-import json
-import os
-import xlsxwriter
-import glob
 import datetime
+import glob
+import json
+import math
+import os
+import shutil
 import time
+import xlsxwriter
 
 
 class Parser(object):
@@ -104,12 +106,9 @@ class Parser(object):
         return str(now) + uuid
 
 
-    def create_excel(self, filename, data):
-        xlsx_path = os.path.join(self.root_path, "xlsx")
-        if not os.path.exists(xlsx_path):
-            os.makedirs(xlsx_path)
+    def create_excel(self, filename, data) -> str:
         xlsx_name = filename + '.xlsx'
-        workbook = xlsxwriter.Workbook(os.path.join(xlsx_path, xlsx_name))
+        workbook = xlsxwriter.Workbook(os.path.join(self.root_path, xlsx_name))
         worksheet = workbook.add_worksheet()
         excel_format = workbook.add_format(
             {'align': 'center', 'valign': 'vcenter', 'text_wrap': True })
@@ -142,6 +141,24 @@ class Parser(object):
             worksheet.write(row, 5, el['vehicle']['make'] + '\n' + el['vehicle']['model'])
             row += 1
         workbook.close()
+        return xlsx_name
+
+
+    def create_folder_excels(self, foldername, data, num_rows) -> str:
+        folder_path = os.path.join(self.root_path, foldername) + os.sep
+        os.mkdir(folder_path)
+        # how many files create with limit rows
+        num_files =  round(len(data)//num_rows) + 1
+        for i in range(0, num_files):
+            if i == num_files - 1:
+                end = len(data)
+            else:
+                end = num_rows * (i + 1)
+            begin = num_rows * i
+            self.create_excel(folder_path  + "part_" + str(i + 1), data[begin:end])
+        shutil.make_archive(folder_path, "zip", folder_path)
+        shutil.rmtree(folder_path, ignore_errors=True)
+        return foldername + ".zip"
 
 
     def get_path_by_uuid(self, uuid) -> str:
@@ -153,5 +170,3 @@ class Parser(object):
                 return self.camera_uuids[uuid]['archive_path']
             else:
                 return None
-
-    
