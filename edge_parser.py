@@ -31,10 +31,10 @@ class Parser(object):
 
     def search_by_time(self, start: str, end: str, uuid: str) -> dict:
         if len(uuid) < 36:
-            return "Error  -> Bad UUID"
+            raise BaseException("Error  -> Bad UUID")
         camera_path = self.get_path_by_uuid(uuid)
         if camera_path is None:
-            return "Error  -> Archive by UUID is not found"
+            raise BaseException("Error  -> Archive by UUID is not found")
         start_time = self.format_date(start)
         end_time = self.format_date(end)
         events = []

@@ -29,7 +29,10 @@ def get_events_by_time():
     if not is_one_day(start, end):
         return "Error ->  Please choose only one day"
     # выбор сделан в пользу однопоточного решения
-    events = pars.search_by_time(start, end, uuid)
+    try:
+        events = pars.search_by_time(start, end, uuid)
+    except BaseException as e:
+        return str(e)
     id_file = pars.generate_file_id(uuid)
     if len(events) > Config.EXCEL_LIMIT_ROW:
         foldername = pars.create_folder_excels(
