@@ -38,52 +38,65 @@ class Parser(object):
         start_time = self.format_date(start)
         end_time = self.format_date(end)
         events = []
-        #archive for only one day
-        path = camera_path + os.sep + start_time['day_path']
+        #check period for compare by hour or by minute
+        if start_time['hour'] != end_time['hour']:
+            path = camera_path + os.sep + start_time['day_path']
+            start = start_time['hour']
+            end = end_time['hour']
+            path_pattern = '/*/*/*.json'
+        else:
+            path = camera_path + os.sep + start_time['day_path'] + os.sep + str(start_time['hour'])
+            start = start_time['minute']
+            end = end_time['minute'] + 1
+            path_pattern = '/*/*.json'
         for directory in sorted(os.listdir(path)):
-            if start_time['hour'] <= int(directory) and int(directory) <= end_time['hour']:
-                pattern = directory + '/*/*/*.json'
+            if start <= int(directory) and int(directory) < end:
+                pattern = directory + path_pattern
                 filenames = glob.glob(os.path.join(path, pattern))
                 for filename in sorted(filenames):
                     with open(filename) as args:
                         json_dict = json.load(args)
                         if json_dict['origin']['uuid'] == uuid:
-                            args_dict = dict()
-                            args_dict['path'] = filename[:-9]
-                            #camera uuid
-                            args_dict['uuid'] = json_dict['origin']['uuid']
-                            time = datetime.datetime.strptime(json_dict['time'].split('.')[0], "%Y-%m-%dT%H:%M:%S")
-                            text_time = time.strftime("%Y.%m.%d %H:%M:%S")
-                            args_dict['time'] = text_time
-                            args_dict['location'] = json_dict['origin']['location']['place']
-                            images = json_dict['measurements'][0]['waypoints']['best']['images']
-                            args_dict['images'] = {
-                                "vehicle": images['vehicle']['name'],
-                                "scene": images['scene']['name'],
-                                "thumb": images['thumb']['name'],
-                                "plate": images['license-plates'][0]['name']
-                            }
-                            vehicle = json_dict['measurements'][0]['waypoints']['best']['vehicle']
-                            if "type" in vehicle.keys():
-                                args_dict['vehicle'] = {
-                                    "class": vehicle['type']['info'][0]['class'],
-                                    "make": vehicle['type']['make'],
-                                    "model": vehicle['type']['model'],
-                                    "weight": vehicle['type']['weight']
-                                }
-                            else:
-                                args_dict['vehicle'] = {
-                                    "class": "",
-                                    "make": "",
-                                    "model": "",
-                                    "weight": ""
-                                }
-                            args_dict['vehicle']['plate-text'] = vehicle['license-plates'][0]['text']['ucode']
+                            args_dict = self.parse_json_args(filename, json_dict)
                             events.append(args_dict)
         print("Json elements: - ", len(events))
         return events
 
-    #2019-06-21T01:00:00
+    def parse_json_args(self, filename, json_dict):
+        args_dict = dict()
+        args_dict['path'] = filename[:-9]
+        #camera uuid
+        args_dict['uuid'] = json_dict['origin']['uuid']
+        time = datetime.datetime.strptime(json_dict['time'].split('.')[0], "%Y-%m-%dT%H:%M:%S")
+        text_time = time.strftime("%Y.%m.%d %H:%M:%S")
+        args_dict['time'] = text_time
+        args_dict['location'] = json_dict['origin']['location']['place']
+        images = json_dict['measurements'][0]['waypoints']['best']['images']
+        args_dict['images'] = {
+            "vehicle": images['vehicle']['name'],
+            "scene": images['scene']['name'],
+            "thumb": images['thumb']['name'],
+            "plate": images['license-plates'][0]['name']
+        }
+        vehicle = json_dict['measurements'][0]['waypoints']['best']['vehicle']
+        if "type" in vehicle.keys():
+            args_dict['vehicle'] = {
+                "class": vehicle['type']['info'][0]['class'],
+                "make": vehicle['type']['make'],
+                "model": vehicle['type']['model'],
+                "weight": vehicle['type']['weight']
+            }
+        else:
+            args_dict['vehicle'] = {
+                "class": "",
+                "make": "",
+                "model": "",
+                "weight": ""
+            }
+        args_dict['vehicle']['plate-text'] = vehicle['license-plates'][0]['text']['ucode']
+        return args_dict
+
+    #pattern 2019-06-21T01:00:00
     def format_date(self, date: str) -> dict:
         tmp = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
         day_path = "{:4d}/{:02d}/{:02d}".format(tmp.year, tmp.month, tmp.day)
