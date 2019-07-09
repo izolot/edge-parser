@@ -34,6 +34,8 @@ def get_events_by_time():
         events = pars.search_by_time(start, end, uuid)
     except BaseException as e:
         return str(e)
+    if len(events) == 0:
+        return "Events not found" 
     id_file = pars.generate_file_id(uuid)
     if len(events) > Config.EXCEL_LIMIT_ROW:
         foldername = pars.create_folder_excels(
