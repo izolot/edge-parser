@@ -12,7 +12,8 @@ from edge_parser import Parser
 
 print("Initialization Parser....")
 pars = Parser(Config.ARCHIVE_PATH)
-pars.init_camera_folders()
+# инициализация проходит через файл конфигурации
+pars.init_cameras_config()
 print("Parser initialized")
 
 def is_one_day(start,end):

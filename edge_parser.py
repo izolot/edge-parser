@@ -10,31 +10,23 @@ import xlsxwriter
 
 class Parser(object):
     
-    def __init__(self, path):
+    def __init__(self, path) -> None:
         self.root_path = path
         self.camera_uuids = {}
 
-    def init_camera_folders(self):
-        for root, _, files in os.walk(self.root_path):
-            for file in files:
-                if '.json' in file:
-                    with open(os.path.join(root, file)) as args:
-                        json_args = json.load(args)
-                        current_uuid = json_args['origin']['uuid']
-                        if current_uuid not in self.camera_uuids:
-                            chunk_path = root.split('/')
-                            name_camera = json_args['origin']['location']['place']
-                            # save path without year/mounth/day/hour/minute/uuid [6]
-                            self.camera_uuids[current_uuid] = { 'archive_path': '/'.join(
-                                chunk_path[0:-6]), 'name' : name_camera }
-        print("Init cameras - ",self.camera_uuids)
+
+    def init_cameras_config(self) -> None:
+        config_path = os.path.join(self.root_path, 'cameras.config')
+        with open(config_path , 'r') as config:
+            self.camera_uuids = json.load(config)['cameras']
+        print("Init cameras - ", self.camera_uuids)
 
     def search_by_time(self, start: str, end: str, uuid: str) -> dict:
         if len(uuid) < 36:
             raise BaseException("Error  -> Bad UUID")
         camera_path = self.get_path_by_uuid(uuid)
         if camera_path is None:
-            raise BaseException("Error  -> Archive by UUID is not found")
+            raise BaseException("Error  -> Camera UUID is not found. Please add camera to archive_path/cameras.config")
         start_time = self.format_date(start)
         end_time = self.format_date(end)
         events = []
@@ -177,7 +169,7 @@ class Parser(object):
         if uuid in self.camera_uuids:
             return self.camera_uuids[uuid]['archive_path']
         else:
-            self.init_camera_folders()
+            self.init_cameras_config()
             if uuid in self.camera_uuids:
                 return self.camera_uuids[uuid]['archive_path']
             else:
