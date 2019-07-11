@@ -1,5 +1,5 @@
-from api import app
+# -*- coding: utf-8 -*-
+from parser_api import app
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', threaded = True)
-    
+    app.run(host='0.0.0.0', threaded=True)
