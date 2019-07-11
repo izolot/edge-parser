@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 import os
 import time
-from threading import Thread
 
 from flask import (after_this_request, jsonify, render_template, request,
                    send_from_directory)
 
-from parser_api import app
 import config
-
+from parser_api import app
 
 print("Initialization Parser....")
 pars = edge_parser.Parser(config.Config.ARCHIVE_PATH)
