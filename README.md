@@ -22,3 +22,7 @@
  ```
  cameras.config -  file for parser, it is include path to different cameras in one big archive. Those paths needs for quick search.    
  
+## TODO TASK
+[] api for add camera(camera.config)
+[] show structure dirs
+[] remove temp files
