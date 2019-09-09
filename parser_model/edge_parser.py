@@ -185,7 +185,7 @@ class Parser(object):
                 return self.camera_uuids[uuid]['archive_path']
             else:
                 return None
-    
+
     def delete_after_time(self, file: str, sec: float) -> None:
         time.sleep(sec)
         if os.path.exists(file):
