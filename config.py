@@ -5,6 +5,7 @@ class Config(object):
     ARCHIVE_PATH = "/home/ivan/Projects/larga/mnt"
     CAMERAS_CONFIG_FILE = "cameras.config"
     EXCEL_LIMIT_ROW = 1000
+    EXCEL_TIME_LIVE = 600.0
 
 
 class DevelopmentConfig(Config):

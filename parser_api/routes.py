@@ -5,11 +5,13 @@ import time
 from flask import (after_this_request, jsonify, render_template, request,
                    send_from_directory)
 
-import config
+from config import Config
+from parser_model.edge_parser import Parser
 from parser_api import app
+from threading import Thread
 
 print("Initialization Parser....")
-pars = edge_parser.Parser(config.Config.ARCHIVE_PATH)
+pars = Parser(Config.ARCHIVE_PATH, Config.CAMERAS_CONFIG_FILE)
 # инициализация проходит через файл конфигурации
 pars.init_cameras_config()
 print("Parser initialized")
@@ -28,7 +30,6 @@ def get_events_by_time():
     uuid = request.args.get('uuid')
     if not is_one_day(start, end):
         return "Error ->  Please choose only one day"
-    # выбор сделан в пользу однопоточного решения
     try:
         events = pars.search_by_time(start, end, uuid)
     except BaseException as e:
@@ -37,13 +38,17 @@ def get_events_by_time():
         return "Events not found"
     id_file = pars.generate_file_id(uuid)
     if len(events) > Config.EXCEL_LIMIT_ROW:
-        foldername = pars.create_folder_excels(
+        filename = pars.create_folder_excels(
             id_file, events, Config.EXCEL_LIMIT_ROW
         )
-        return jsonify({'id_file': foldername, 'result': events})
     else:
         filename = pars.create_excel(id_file, events)
-        return jsonify({'id_file': filename, 'result': events})
+    # delete file after 10 min
+    filepath = os.path.join(pars.root_path, filename)
+    t = Thread(
+        target=pars.delete_after_time, args=(filepath, Config.EXCEL_TIME_LIVE))
+    t.start()
+    return jsonify({'id_file': filename, 'result': events})
 
 
 """

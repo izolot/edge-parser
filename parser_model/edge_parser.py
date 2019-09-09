@@ -14,7 +14,7 @@ import config
 
 class Parser(object):
 
-    def __init__(self, path, config_name) -> None:
+    def __init__(self, path: str, config_name: str) -> None:
         self.root_path = path
         self.camera_uuids = {}
         self.config_filename = config_name
@@ -63,7 +63,7 @@ class Parser(object):
         print("Json elements: - ", len(events))
         return events
 
-    def parse_json_args(self, filename, json_dict):
+    def parse_json_args(self, filename: str, json_dict: dict) -> dict:
         args_dict = dict()
         args_dict['path'] = filename[:-9]
         # camera uuid
@@ -113,13 +113,13 @@ class Parser(object):
         }
         return dict_date
 
-    def generate_file_id(self, uuid):
+    def generate_file_id(self, uuid: str) -> str:
         # gen id and remove 0x
         now = hex(int(time.time()))[2:]
         uuid = uuid.replace('-', '')
         return str(now) + uuid
 
-    def create_excel(self, filename, data) -> str:
+    def create_excel(self, filename: str, data: dict) -> str:
         xlsx_name = filename + '.xlsx'
         workbook = xlsxwriter.Workbook(os.path.join(self.root_path, xlsx_name))
         worksheet = workbook.add_worksheet()
@@ -176,7 +176,7 @@ class Parser(object):
         shutil.rmtree(folder_path, ignore_errors=True)
         return foldername + ".zip"
 
-    def get_path_by_uuid(self, uuid) -> str:
+    def get_path_by_uuid(self, uuid: str) -> None:
         if uuid in self.camera_uuids:
             return self.camera_uuids[uuid]['archive_path']
         else:
@@ -185,3 +185,8 @@ class Parser(object):
                 return self.camera_uuids[uuid]['archive_path']
             else:
                 return None
+    
+    def delete_after_time(self, file: str, sec: float) -> None:
+        time.sleep(sec)
+        if os.path.exists(file):
+            os.remove(file)
